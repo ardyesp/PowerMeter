@@ -198,7 +198,7 @@ void accumulateCyclePower()	{
 uint16_t getCyclePower(int ctPin)	{
 // ------------------------
 	// Measuring the instantanious power of waveform
-	
+	// TODO: Fix the scenerio where microseconds may overflow from 32 bits
 	// start the full wave multiple cycle sampling
 	long tStart = micros();
 	long tEnd = tStart + TOTAL_SAMPLE_TIME_US;
