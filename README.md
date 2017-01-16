@@ -7,7 +7,8 @@ Use any BLE app like LightBlue or BLE Scanner to read power data.
 The meter has proven to be accurate down to one watt when compared with GE I210+ meter.
 
 # Schematic
-[logo]:  docs/Schematic.png "Schematic"
+![PowerMeter Schematic](https://github.com/ardyesp/PowerMeter/blob/master/docs/Schematic.png)
+
 
 ## Bill Of Material
 1. Current Transformer: SCT-013-050 (50A/1V) (has integrated burden resistor of ~ 37 ohm)
