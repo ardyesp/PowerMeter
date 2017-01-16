@@ -13,12 +13,12 @@
 	Circuit:
 	-------
 	AC 9V adapter is connected in series with 220ohm and 1N4007 diode and 220 uF filter capacitor.
-	AMS1117 3.3V regulator feeds off this DC input and generated a 3.3V Vcc
+	AMS1117 3.3V regulator feeds off this DC input and generates a 3.3V Vcc
 	
 	A voltage divider is created from Vcc and Gnd and adapter input is connected to it through 15K resistor
 	A germanium diode prevents reverse biasing of this junction. This creates a DC offset input AC voltage which is read at A3
 	
-	Another voltage divider from Vcc and Gnd is stabilised with a 100 uF cap and one end of both CT is connected to this junction
+	Another voltage divider from Vcc and Gnd is stabilized with a 100 uF cap and one end of both CT is connected to this junction
 	Other end of CT is connected to A1 and A2. This creates DC offset AC current waveforms
 */
 
@@ -31,6 +31,9 @@
 #define NUM_ADV_SEND			1			// how many advertisements sent before turning adv off
 #define AVG_SIZE				5			// how many reading averaged before Tx
 #define ADC_SPEED_US			80
+
+#define VOLTAGE_CURRENT_FACTOR	0.0688		// adjust this multiplier when calibrating
+
 
 // derived constants
 #define WAVE_TIME_PERIOD_US		(1000000/WAVE_FREQUENCY)
@@ -197,8 +200,8 @@ void accumulateCyclePower()	{
 // ------------------------
 uint16_t getCyclePower(int ctPin)	{
 // ------------------------
-	// Measuring the instantanious power of waveform
-	// TODO: Fix the scenerio where microseconds may overflow from 32 bits
+	// Measuring the instantaneous power of waveform
+	// TODO: Fix the scenario where microseconds may overflow from 32 bits
 	// start the full wave multiple cycle sampling
 	long tStart = micros();
 	long tEnd = tStart + TOTAL_SAMPLE_TIME_US;
@@ -225,7 +228,7 @@ uint16_t getCyclePower(int ctPin)	{
 #endif
 
 	
-	// calculate power = average of sum of instantanious power
+	// calculate power = average of sum of instantaneous power
 	int32_t sumIPower = 0;
 	int32_t Vsum = 0;
 	int32_t Csum = 0;
@@ -236,10 +239,10 @@ uint16_t getCyclePower(int ctPin)	{
 		Csum += currentWave[i];
 	}		
 	
-	// average the sum of instantanious power and multiply it by factor of voltage and current to get real power
+	// average the sum of instantaneous power and multiply it by factor of voltage and current to get real power
 	// Voltage: using adapter and potential divider: 423.5 units = 169.70 V => 0.4007 V/reading
 	// Current: using 50A/1V CT: 1 unit = 3.6/1024 = 3.515 mV => 0.17578125 A/reading
-	int32_t realPower = (sumIPower * 0.0688)/ idx;
+	int32_t realPower = (sumIPower * VOLTAGE_CURRENT_FACTOR)/ idx;
 	vOffset += Vsum / idx;
 	cOffset += Csum / idx;
 

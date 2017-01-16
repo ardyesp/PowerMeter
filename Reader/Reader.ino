@@ -1,8 +1,7 @@
 /*
 	Scan and display the power reading Tx by power meter
-	Also plots the power in a graph
-	Provides switches to calculate the deltas
-	Power Meter peerAddr : 2F 3B ED B5 B6 EE
+	Switch calculates the power deltas
+	Adjust the Power Meter peerAddr pmAddress in the code below to reflect your power meter BLE address
 	Local Name is		: W: 1238
 */
 
@@ -10,14 +9,14 @@
 #include <Adafruit_GFX.h>
 #include "Adafruit_nrf_SSD1306.h"
 
-// -------- Arduino Nano pin defs ---------
+// -------- nrf51822 pin defs ---------
 #define NANO_OLED_RESET 6
 #define SWITCH			D20
 
 // I2C interface
 // nrF - P29 (SDA1) and P28 (SCL1)
 Adafruit_SSD1306 display(NANO_OLED_RESET);
-uint8_t pmAddress[6] = {0x2F, 0x3B, 0xED, 0xB5, 0xB6, 0xEE};
+uint8_t pmAddress[6] = {0x2F, 0x3B, 0xED, 0xB5, 0xB6, 0xEE};		// <--- adjust this
 int currentPower = 0;
 int snappedPower = 0;
 boolean toggle = true;
