@@ -9,6 +9,9 @@ The meter has proven to be accurate down to one watt when compared with GE I210+
 # Schematic
 ![PowerMeter Schematic](https://github.com/ardyesp/PowerMeter/blob/master/docs/Schematic.png)
 
+# Build
+The potential divider network created with R3/R4 and with R5/R6 set the voltage at pin P0.01, P0.02 and P0.03 at Vcc/2.
+Adjust the feed resistor R7, so that input AC voltage swing, stays within Vcc and Gnd. The input diode D2 protects against reverse biasing on this junction. 
 
 ## Bill Of Material
 1. Current Transformer: SCT-013-050 (50A/1V) (has integrated burden resistor of ~ 37 ohm)
