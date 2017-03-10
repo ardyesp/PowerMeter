@@ -23,9 +23,9 @@
 */
 
 
-#define CT_1_IN_PIN				A1			// CT1 input connected here, A1 = P0_2
-#define CT_2_IN_PIN				A2			// CT1 input connected here, A2 = P0_3
-#define VOLTAGE_PIN				A3			// AC adapter lead connected here
+#define CT_1_IN_PIN				P0_2		// CT1 input connected here, A1 = P0_2
+#define CT_2_IN_PIN				P0_3		// CT1 input connected here, A2 = P0_3
+#define VOLTAGE_PIN				P0_4		// AC adapter lead connected here
 #define WAVE_FREQUENCY			60			// Power line = 60 Hz
 #define NUMBER_CYCLES_SAMPLE	10			// how long to sample input waveform
 #define NUM_ADV_SEND			1			// how many advertisements sent before turning adv off
@@ -56,6 +56,8 @@
 #endif
 
 
+#include <BLE_API.h>
+
 BLE ble;
 
 boolean advDone = false;
@@ -78,6 +80,8 @@ uint16_t vOffset, cOffset;
 // ------------------------
 void rnCallback(bool radio_active)	{
 // ------------------------
+	DBG_PRINT("Rn cb: "); DBG_PRINTLN(radio_active);
+
 	// radio messes analog reading sometimes, so synchronize with radio
 	if(radio_active)
 		numAdvSent++;
@@ -104,7 +108,8 @@ void setup() {
 	// set adv_timeout, in seconds
 	ble.setAdvertisingTimeout(0);
 	// hookup for radio events
-	ble.onRadioNotification(rnCallback);
+	ble.gap().onRadioNotification(rnCallback);
+	ble.gap().initRadioNotification();
 
 	// initialize the ADC module
 	// Ref = 1.2V internal without prescaling; input = 1/3 prescaling
@@ -132,6 +137,7 @@ void setup() {
 	vOffset = getDCOffset(VOLTAGE_PIN);
 	cOffset = getDCOffset(CT_1_IN_PIN);
 	
+	DBG_PRINTLN("Starting Advertising");	
 	// manually advertise first time
 	ble.startAdvertising();
 }
@@ -145,6 +151,7 @@ void loop() {
 	ble.waitForEvent();
 	// WFE is triggered after every radio notification callback
 	if(advDone)	{
+		DBG_PRINTLN("Adv done");
 		advDone = false;
 		ble.stopAdvertising();
 		numAdvSent = 0;
@@ -185,6 +192,8 @@ void updateAdvPayload()	{
 // ------------------------
 void accumulateCyclePower()	{
 // ------------------------
+	DBG_PRINTLN("Getting cycle power");
+
 	// accumulate the power for averaging
 	runAvg[counter] = getCyclePower(CT_1_IN_PIN);
 	runAvg[counter] += getCyclePower(CT_2_IN_PIN);
@@ -201,12 +210,18 @@ void accumulateCyclePower()	{
 uint16_t getCyclePower(int ctPin)	{
 // ------------------------
 	// Measuring the instantaneous power of waveform
-	// TODO: Fix the scenario where microseconds may overflow from 32 bits
-	// start the full wave multiple cycle sampling
-	long tStart = micros();
-	long tEnd = tStart + TOTAL_SAMPLE_TIME_US;
 	int idx = 0;
+	uint32_t tStart = micros();
+	uint32_t tEnd = tStart + TOTAL_SAMPLE_TIME_US;
 	
+	// will microseconds overflow from 32 bit counter
+	if(tEnd < tStart)	{
+		delayMicroseconds(TOTAL_SAMPLE_TIME_US * 2);
+		tStart = micros();
+		tEnd = tStart + TOTAL_SAMPLE_TIME_US;
+	}
+	
+	// start the full wave multiple cycle sampling
 	// this loop takes 101 samples of both voltage and current per wave cycle
 	// 1.6416 degree lag from V -> I measurement can be ignored
 	while(micros() < tEnd)	{

@@ -5,16 +5,18 @@
 	Local Name is		: W: 1238
 */
 
+#include <BLE_API.h>
+
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include "Adafruit_nrf_SSD1306.h"
 
 // -------- nrf51822 pin defs ---------
 #define NANO_OLED_RESET 6
-#define SWITCH			D20
+#define SWITCH			D2
 
 // I2C interface
-// nrF - P29 (SDA1) and P28 (SCL1)
+// nrF - P29 (SDA1) and P28 (SCL1) - hardcoded in adafruit library
 Adafruit_SSD1306 display(NANO_OLED_RESET);
 uint8_t pmAddress[6] = {0x2F, 0x3B, 0xED, 0xB5, 0xB6, 0xEE};		// <--- adjust this
 int currentPower = 0;
@@ -65,21 +67,20 @@ void scanCallBack(const Gap::AdvertisementCallbackParams_t *params) {
 
 	// PM adv packet found
 	display.clearDisplay();
+	display.dim(true);
 	display.setCursor(0,0);
 	display.setTextSize(1);
 	display.print("RSSI: ");
 	display.print(params->rssi);
 
-	display.setTextSize(2);
-	
 	uint8_t len;
 	uint8_t adv_name[31];
 	if( NRF_SUCCESS == ble_advdata_decode(BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME, params->advertisingDataLen, (uint8_t *)params->advertisingData, &len, adv_name) )	 {
-		display.setCursor(0, 18);
-		display.println((const char *)adv_name);
-		
+		display.setCursor(0, 15);
 		display.print("S: ");
 		display.println(snappedPower);
+		
+		display.println((const char *)adv_name);
 		
 		// extract the current power from name
 		currentPower = atoi((const char *)adv_name + 3);
@@ -105,8 +106,8 @@ void setup() {
 	Serial.begin(115200);
 	Serial.println("Start...");
 	
-	pinMode(D20, INPUT_PULLUP);
-	attachInterrupt(D20, handle_irq1, RISING);
+	pinMode(SWITCH, INPUT_PULLUP);
+	attachInterrupt(SWITCH, handle_irq1, RISING);
 
 	display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 	display.clearDisplay();
