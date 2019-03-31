@@ -93,6 +93,25 @@ void rnCallback(bool radio_active)	{
 
 
 // ------------------------
+void initWDT(int seconds)	{
+// ------------------------
+	NRF_WDT->CONFIG = (WDT_CONFIG_SLEEP_Run << WDT_CONFIG_SLEEP_Pos);
+	NRF_WDT->CRV = seconds * 32768; // 32k tick
+	NRF_WDT->RREN = WDT_RREN_RR0_Enabled << WDT_RREN_RR0_Pos;
+	NRF_WDT->TASKS_START = 1;
+}
+
+
+
+// ------------------------
+void kickWDT() {
+// ------------------------
+	NRF_WDT->RR[0] = WDT_RR_RR_Reload;
+}
+
+
+
+// ------------------------
 void setup() {
 // ------------------------
 	Serial.begin(250000);		// ??? The reading from ADC is incorrect if Serial not begin ??
@@ -140,6 +159,8 @@ void setup() {
 	DBG_PRINTLN("Starting Advertising");	
 	// manually advertise first time
 	ble.startAdvertising();
+	// start the watchdog timer
+	initWDT(5);
 }
 
 
@@ -160,8 +181,10 @@ void loop() {
 		accumulateCyclePower();
 
 		// update payload once all cycles accumulated
-		if(!counter)
+		if(!counter)	{
 			updateAdvPayload();
+			kickWDT();
+		}
 
 		// advertise again
 		ble.startAdvertising();
